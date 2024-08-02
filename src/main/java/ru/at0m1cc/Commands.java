@@ -1,5 +1,9 @@
 package ru.at0m1cc;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 /**
  * Класс с набором команд
@@ -30,5 +34,16 @@ public class Commands {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void screenShot() throws AWTException, IOException {
+        Robot robot = new Robot();
+        String format = "png";
+        String name = "screen." + format;
+
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Rectangle rectangle = new Rectangle(toolkit.getScreenSize());
+        BufferedImage screenshot = robot.createScreenCapture(rectangle);
+        ImageIO.write(screenshot, format, new File(name));
     }
 }

@@ -1,11 +1,16 @@
 package ru.at0m1cc;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Класс сервера
  * @author at0m1cc
@@ -37,24 +42,36 @@ public class ServerLogic {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream())); // Получение информации с клиента
                 String request = reader.readLine();//Передаём всю информацию с клиента
                 //Проверка команд
-                if (request.equals("reboot")) {
-                    command.reboot();
-                }
-                else if (request.equals("powerOff")) {
-                    command.powerOff();
-                }
-                else if (request.equals("logOut")) {
-                    command.logOut();
-                }
-                else if (request.equals("checkStatus")) {
-                    OutputStream outputStream = socket.getOutputStream();
-                    outputStream.write("OK".getBytes());
-                    outputStream.flush();
-                    outputStream.close();
+                switch (request) {
+                    case "reboot" -> command.reboot();
+                    case "powerOff" -> command.powerOff();
+                    case "logOut" -> command.logOut();
+                    case "screen" -> {
+                        command.screenShot();
+                        File file = new File("screen.png");
+                        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+                        BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+                        byte[] byteArray = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = bis.read(byteArray)) != -1) {
+                            bos.write(byteArray,0,bytesRead);
+                            bos.flush();
+                        }
+                        bis.close();
+                        bos.close();
+                    }
+                    case "checkStatus" -> {
+                        OutputStream outputStream = socket.getOutputStream();
+                        outputStream.write("OK\n".getBytes());
+                        outputStream.flush();
+                        outputStream.close();
+                    }
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e); //Если что-либо пошло не по плану
+        } catch (AWTException e) {
+            throw new RuntimeException(e);
         }
     }
 
